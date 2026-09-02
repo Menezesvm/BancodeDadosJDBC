@@ -61,11 +61,6 @@ dburl=jdbc:mysql://127.0.0.1:3306/bancoteste
 useSSL=false
 ```
 
-> ⚠️ **Nota de segurança:** o `db.properties` atualmente contém credenciais reais commitadas no repositório. Como o repositório agora é público, é altamente recomendável:
-> 1. Trocar a senha do banco de dados que está no arquivo.
-> 2. Adicionar `db.properties` ao `.gitignore` daqui para frente, e versionar um `db.properties.example` (com valores fictícios, como no trecho acima) para que próximos clones precisem criar sua própria cópia local.
-> 3. Se necessário, remover o valor antigo do histórico do Git (por exemplo, com `git filter-repo` ou o BFG Repo-Cleaner), já que apenas sobrescrever o arquivo em um novo commit não remove a senha dos commits anteriores.
-
 ## Como executar
 
 Cada pasta de projeto contém um diretório `lib/` com o driver JDBC do MySQL (`mysql-connector-j`), já referenciado pelos arquivos de projeto do IntelliJ IDEA (`.iml`, `.idea/`).

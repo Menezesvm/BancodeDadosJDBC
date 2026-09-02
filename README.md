@@ -60,12 +60,6 @@ password=your_password_here
 dburl=jdbc:mysql://127.0.0.1:3306/bancoteste
 useSSL=false
 ```
-
-> ⚠️ **Security note:** `db.properties` currently contains real-looking credentials committed to the repository. Since this repository is public, it's strongly recommended to:
-> 1. Rotate/change the database password shown in the file.
-> 2. Add `db.properties` to `.gitignore` going forward, and commit a `db.properties.example` (with placeholder values like the snippet above) instead, so future clones need to create their own local copy.
-> 3. If needed, purge the old value from Git history (e.g., with `git filter-repo` or the BFG Repo-Cleaner), since simply overwriting the file in a new commit does not remove it from previous commits.
-
 ## How to Run
 
 Each project folder contains a `lib/` directory with the MySQL JDBC driver (`mysql-connector-j`), already referenced by the IntelliJ IDEA project files (`.iml`, `.idea/`).
