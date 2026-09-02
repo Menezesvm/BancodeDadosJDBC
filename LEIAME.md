@@ -1,0 +1,102 @@
+# BancodeDadosJDBC
+
+## Visão geral
+
+Este repositório reúne estudos práticos de **JDBC (Java Database Connectivity)** — a API padrão do Java para conectar e interagir com bancos de dados relacionais (MySQL, neste caso). Ele segue uma progressão passo a passo: cada subpasta é um mini-projeto independente (com sua própria pasta `src/`) que evolui a partir do anterior, adicionando uma nova operação ou conceito de JDBC por vez.
+
+Este repositório é um complemento natural do [`EstudosJava`](https://github.com/Menezesvm/EstudosJava) — enquanto aquele cobre Java puro e POO, este foca especificamente em **acesso a banco de dados com JDBC puro**, um caminho direto para o estudo de Spring Data JPA / Hibernate mais adiante.
+
+## O que você vai encontrar
+
+- **Gerenciamento de conexão com o banco**: abrir/fechar uma `Connection` de forma segura, carregando as credenciais de um arquivo externo `db.properties`
+- **Exceções customizadas**: encapsular `SQLException` em uma exceção de runtime específica do domínio (`DbException`)
+- **Leitura de dados**: `Statement` + `ResultSet` para executar consultas `SELECT` e percorrer as linhas retornadas
+- **Inserção de dados**: `PreparedStatement` com `INSERT` parametrizado e recuperação de chaves geradas automaticamente
+- **Atualização de dados**: `UPDATE` parametrizado e verificação de linhas afetadas
+- **Exclusão de dados**: `DELETE` parametrizado e tratamento de erros de integridade referencial com uma exceção dedicada (`DbIntegrityException`)
+- **Liberação de recursos**: fechamento consistente de `Connection`, `Statement` e `ResultSet` em blocos `finally`
+
+## Estrutura da pasta
+
+| Projeto | Conceito principal | Descrição |
+|---|---|---|
+| [`jdbc`](jdbc) | **Conexão** | O exemplo mais simples possível: abre uma `Connection` com o banco usando `DriverManager` e a fecha em seguida. Introduz `DB.getConnection()` / `DB.closeConnection()` e o encapsulamento `DbException`. |
+| [`jdbc2`](jdbc2) | **SELECT** (leitura) | Usa um `Statement` para executar `SELECT * FROM department`, percorre o `ResultSet` com `while(rs.next())` e imprime cada linha. Adiciona os métodos auxiliares `DB.closedStatement()` / `DB.closedResultSet()` para liberação segura de recursos. |
+| [`jdbc3`](jdbc3) | **INSERT** (criação) | Usa um `PreparedStatement` com `Statement.RETURN_GENERATED_KEYS` para inserir novas linhas em `department` e recuperar o `Id` gerado automaticamente via `getGeneratedKeys()`. Também contém um exemplo comentado inserindo em `seller` com placeholders `?` (nome, e-mail, data, salário, chave estrangeira). |
+| [`jdbc4`](jdbc4) | **UPDATE** | Usa um `PreparedStatement` parametrizado para dar um reajuste salarial a todos os `seller` de um determinado departamento (`UPDATE seller SET BaseSalary = BaseSalary + ? WHERE DepartmentId = ?`) e verifica quantas linhas foram afetadas. |
+| [`jdbc5`](jdbc5) | **DELETE** + erros de integridade | Usa um `PreparedStatement` parametrizado para excluir um `department` pelo `Id`. Introduz a `DbIntegrityException`, uma exceção customizada lançada quando a exclusão viola uma restrição de chave estrangeira (ex.: tentar excluir um departamento que ainda tem vendedores vinculados a ele). |
+
+## Progressão de aprendizado sugerida
+
+1. **`jdbc`** — Entenda o básico absoluto: como uma conexão JDBC é aberta e fechada, e como as configurações de conexão são externalizadas em `db.properties` em vez de ficarem "hardcoded" no código.
+2. **`jdbc2`** — Aprenda a *ler* dados: executar uma consulta e percorrer os resultados com `ResultSet`.
+3. **`jdbc3`** — Aprenda a *criar* dados: inserir linhas com um `PreparedStatement` e capturar a chave primária gerada pelo banco.
+4. **`jdbc4`** — Aprenda a *atualizar* dados: executar um `UPDATE` parametrizado e validar o número de linhas afetadas.
+5. **`jdbc5`** — Aprenda a *excluir* dados com segurança: executar um `DELETE` parametrizado e tratar erros reais de restrição de integridade com um tipo de exceção dedicado.
+
+Essa progressão espelha o clássico ciclo CRUD (Create, Read, Update, Delete), com a configuração da conexão como etapa obrigatória inicial.
+
+## Conceitos-chave abordados
+
+| Conceito | Onde aparece |
+|---|---|
+| **`Connection`, `DriverManager`** | `jdbc` (e todos os projetos) |
+| **Configuração externalizada (`db.properties`, `Properties`)** | `jdbc` (e todos os projetos) |
+| **Encapsulamento de exceção checked em unchecked (`DbException`)** | `jdbc` (e todos os projetos) |
+| **`Statement` + `ResultSet`** | `jdbc2` |
+| **`PreparedStatement` (consultas parametrizadas, placeholders `?`)** | `jdbc3`, `jdbc4`, `jdbc5` |
+| **Chaves geradas automaticamente (`RETURN_GENERATED_KEYS`, `getGeneratedKeys()`)** | `jdbc3` |
+| **`executeUpdate()` e contagem de linhas afetadas** | `jdbc3`, `jdbc4`, `jdbc5` |
+| **Tratamento de integridade referencial (`DbIntegrityException`)** | `jdbc5` |
+| **Liberação de recursos em blocos `finally`** | `jdbc2`, `jdbc3`, `jdbc4`, `jdbc5` |
+
+## Configuração do banco de dados
+
+Cada projeto espera um arquivo `db.properties` (já presente em cada pasta) com os dados de conexão:
+
+```properties
+user=root
+password=sua_senha_aqui
+dburl=jdbc:mysql://127.0.0.1:3306/bancoteste
+useSSL=false
+```
+
+> ⚠️ **Nota de segurança:** o `db.properties` atualmente contém credenciais reais commitadas no repositório. Como o repositório agora é público, é altamente recomendável:
+> 1. Trocar a senha do banco de dados que está no arquivo.
+> 2. Adicionar `db.properties` ao `.gitignore` daqui para frente, e versionar um `db.properties.example` (com valores fictícios, como no trecho acima) para que próximos clones precisem criar sua própria cópia local.
+> 3. Se necessário, remover o valor antigo do histórico do Git (por exemplo, com `git filter-repo` ou o BFG Repo-Cleaner), já que apenas sobrescrever o arquivo em um novo commit não remove a senha dos commits anteriores.
+
+## Como executar
+
+Cada pasta de projeto contém um diretório `lib/` com o driver JDBC do MySQL (`mysql-connector-j`), já referenciado pelos arquivos de projeto do IntelliJ IDEA (`.iml`, `.idea/`).
+
+1. Abra a subpasta desejada (ex.: `jdbc2`) como projeto no IntelliJ IDEA.
+2. Garanta que o driver MySQL em `lib/` esteja adicionado ao classpath do módulo.
+3. Atualize o `db.properties` com as credenciais do seu banco local.
+4. Certifique-se de que o banco/tabelas referenciados (`bancoteste`, `department`, `seller`) existam — crie-os antes, se necessário.
+5. Execute `src/application/Program.java`.
+
+Ou compile/execute manualmente pelo terminal:
+
+```bash
+cd jdbc2
+javac -cp "lib/*" -d bin src/application/*.java src/db/*.java
+java -cp "bin:lib/*" application.Program
+```
+
+## Próximos passos
+
+Depois de concluir este repositório, os próximos passos naturais em direção ao roadmap de Spring Boot são:
+
+- Pool de conexões (HikariCP)
+- JPA / Hibernate (mapear entidades em vez de escrever SQL puro)
+- Flyway para migrações de banco de dados
+- Transações (`commit`/`rollback`) com JDBC
+- Padrão de projeto DAO (Data Access Object)
+- Testes de integração com Testcontainers
+
+---
+
+**Repositório:** [Menezesvm/BancodeDadosJDBC](https://github.com/Menezesvm/BancodeDadosJDBC)
+**Linguagem:** Java
+**Tema:** JDBC / acesso a banco de dados relacional
