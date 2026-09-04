@@ -25,6 +25,7 @@ Este repositório é um complemento natural do [`EstudosJava`](https://github.co
 | [`jdbc3`](jdbc3) | **INSERT** (criação) | Usa um `PreparedStatement` com `Statement.RETURN_GENERATED_KEYS` para inserir novas linhas em `department` e recuperar o `Id` gerado automaticamente via `getGeneratedKeys()`. Também contém um exemplo comentado inserindo em `seller` com placeholders `?` (nome, e-mail, data, salário, chave estrangeira). |
 | [`jdbc4`](jdbc4) | **UPDATE** | Usa um `PreparedStatement` parametrizado para dar um reajuste salarial a todos os `seller` de um determinado departamento (`UPDATE seller SET BaseSalary = BaseSalary + ? WHERE DepartmentId = ?`) e verifica quantas linhas foram afetadas. |
 | [`jdbc5`](jdbc5) | **DELETE** + erros de integridade | Usa um `PreparedStatement` parametrizado para excluir um `department` pelo `Id`. Introduz a `DbIntegrityException`, uma exceção customizada lançada quando a exclusão viola uma restrição de chave estrangeira (ex.: tentar excluir um departamento que ainda tem vendedores vinculados a ele). |
+| [`jdbc6`](jdbc6) | **Transações** (`commit`/`rollback`) | Desativa o auto-commit (`conn.setAutoCommit(false)`) para executar dois comandos `UPDATE` como uma única transação atômica. Se ocorrer um erro entre eles, a transação é revertida (`conn.rollback()`), garantindo que nenhuma das duas atualizações seja persistida, e uma `DbException` é lançada; se ambas forem bem-sucedidas, a transação é confirmada (`conn.commit()`). |
 
 ## Progressão de aprendizado sugerida
 
@@ -33,6 +34,7 @@ Este repositório é um complemento natural do [`EstudosJava`](https://github.co
 3. **`jdbc3`** — Aprenda a *criar* dados: inserir linhas com um `PreparedStatement` e capturar a chave primária gerada pelo banco.
 4. **`jdbc4`** — Aprenda a *atualizar* dados: executar um `UPDATE` parametrizado e validar o número de linhas afetadas.
 5. **`jdbc5`** — Aprenda a *excluir* dados com segurança: executar um `DELETE` parametrizado e tratar erros reais de restrição de integridade com um tipo de exceção dedicado.
+6. **`jdbc6`** — Aprenda a agrupar várias operações em uma única **transação**: desativar o auto-commit, executar várias atualizações e confirmá-las todas juntas, ou reverter tudo caso algo falhe no meio do caminho — garantindo a consistência dos dados.
 
 Essa progressão espelha o clássico ciclo CRUD (Create, Read, Update, Delete), com a configuração da conexão como etapa obrigatória inicial.
 
@@ -48,11 +50,12 @@ Essa progressão espelha o clássico ciclo CRUD (Create, Read, Update, Delete), 
 | **Chaves geradas automaticamente (`RETURN_GENERATED_KEYS`, `getGeneratedKeys()`)** | `jdbc3` |
 | **`executeUpdate()` e contagem de linhas afetadas** | `jdbc3`, `jdbc4`, `jdbc5` |
 | **Tratamento de integridade referencial (`DbIntegrityException`)** | `jdbc5` |
-| **Liberação de recursos em blocos `finally`** | `jdbc2`, `jdbc3`, `jdbc4`, `jdbc5` |
+| **Transações (`setAutoCommit`, `commit()`, `rollback()`)** | `jdbc6` |
+| **Liberação de recursos em blocos `finally`** | `jdbc2`, `jdbc3`, `jdbc4`, `jdbc5`, `jdbc6` |
 
 ## Configuração do banco de dados
 
-Cada projeto espera um arquivo `db.properties` (já presente em cada pasta) com os dados de conexão:
+Cada projeto precisa de um arquivo `db.properties` local com os dados de conexão do seu banco (esse arquivo **não** é versionado no repositório — está listado no `.gitignore` — então você precisa criar sua própria cópia local):
 
 ```properties
 user=root
@@ -60,6 +63,8 @@ password=sua_senha_aqui
 dburl=jdbc:mysql://127.0.0.1:3306/bancoteste
 useSSL=false
 ```
+
+> ✅ **Nota de segurança:** o `db.properties` está corretamente excluído do controle de versão via `.gitignore` em cada pasta de projeto. Só mantenha esse mesmo padrão em qualquer subpasta nova que você adicionar — crie o `db.properties` local você mesmo, e nunca o remova do `.gitignore`.
 
 ## Como executar
 
@@ -86,7 +91,6 @@ Depois de concluir este repositório, os próximos passos naturais em direção 
 - Pool de conexões (HikariCP)
 - JPA / Hibernate (mapear entidades em vez de escrever SQL puro)
 - Flyway para migrações de banco de dados
-- Transações (`commit`/`rollback`) com JDBC
 - Padrão de projeto DAO (Data Access Object)
 - Testes de integração com Testcontainers
 

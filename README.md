@@ -25,6 +25,7 @@ This repository is a natural companion to [`EstudosJava`](https://github.com/Men
 | [`jdbc3`](jdbc3) | **INSERT** (create) | Uses a `PreparedStatement` with `Statement.RETURN_GENERATED_KEYS` to insert new rows into `department` and retrieve the auto-generated `Id` via `getGeneratedKeys()`. Also contains a commented-out example inserting into `seller` with `?` placeholders (string, email, date, salary, foreign key). |
 | [`jdbc4`](jdbc4) | **UPDATE** | Uses a parameterized `PreparedStatement` to give every `seller` in a given department a salary raise (`UPDATE seller SET BaseSalary = BaseSalary + ? WHERE DepartmentId = ?`), then checks how many rows were affected. |
 | [`jdbc5`](jdbc5) | **DELETE** + integrity errors | Uses a parameterized `PreparedStatement` to delete a `department` by `Id`. Introduces `DbIntegrityException`, a custom exception thrown when the deletion violates a foreign-key constraint (e.g., trying to delete a department that still has sellers linked to it). |
+| [`jdbc6`](jdbc6) | **Transactions** (`commit`/`rollback`) | Disables auto-commit (`conn.setAutoCommit(false)`) to run two `UPDATE` statements as a single atomic transaction. If an error occurs between them, the transaction is rolled back (`conn.rollback()`) so neither update is persisted, and a `DbException` is thrown; if both succeed, the transaction is committed (`conn.commit()`). |
 
 ## Suggested Learning Progression
 
@@ -33,6 +34,7 @@ This repository is a natural companion to [`EstudosJava`](https://github.com/Men
 3. **`jdbc3`** — Learn to *create* data: insert rows with a `PreparedStatement` and capture the database-generated primary key.
 4. **`jdbc4`** — Learn to *update* data: run a parameterized `UPDATE` and validate the number of affected rows.
 5. **`jdbc5`** — Learn to *delete* data safely: run a parameterized `DELETE` and handle real-world integrity constraint errors with a dedicated exception type.
+6. **`jdbc6`** — Learn to group multiple operations into a single **transaction**: disable auto-commit, run several updates, and either commit them all together or roll them all back if something fails midway — guaranteeing data consistency.
 
 This mirrors the classic CRUD cycle (Create, Read, Update, Delete), with the connection setup as the mandatory first step.
 
@@ -48,11 +50,12 @@ This mirrors the classic CRUD cycle (Create, Read, Update, Delete), with the con
 | **Auto-generated keys (`RETURN_GENERATED_KEYS`, `getGeneratedKeys()`)** | `jdbc3` |
 | **`executeUpdate()` and affected-row counting** | `jdbc3`, `jdbc4`, `jdbc5` |
 | **Referential integrity handling (`DbIntegrityException`)** | `jdbc5` |
-| **Resource cleanup in `finally` blocks** | `jdbc2`, `jdbc3`, `jdbc4`, `jdbc5` |
+| **Transactions (`setAutoCommit`, `commit()`, `rollback()`)** | `jdbc6` |
+| **Resource cleanup in `finally` blocks** | `jdbc2`, `jdbc3`, `jdbc4`, `jdbc5`, `jdbc6` |
 
 ## Database Setup
 
-Each project expects a `db.properties` file (already present in each folder) with your database connection details:
+Each project needs a local `db.properties` file with your database connection details (this file is **not** committed to the repository — it's listed in `.gitignore` — so you need to create your own copy locally):
 
 ```properties
 user=root
@@ -60,6 +63,9 @@ password=your_password_here
 dburl=jdbc:mysql://127.0.0.1:3306/bancoteste
 useSSL=false
 ```
+
+> ✅ **Security note:** `db.properties` is correctly excluded from version control via `.gitignore` in every project folder. Just make sure each new subfolder you add keeps following the same pattern — create the local `db.properties` yourself, and never remove it from `.gitignore`.
+
 ## How to Run
 
 Each project folder contains a `lib/` directory with the MySQL JDBC driver (`mysql-connector-j`), already referenced by the IntelliJ IDEA project files (`.iml`, `.idea/`).
@@ -85,7 +91,6 @@ After completing this repository, natural next steps toward the Spring Boot road
 - Connection pooling (HikariCP)
 - JPA / Hibernate (mapping entities instead of writing raw SQL)
 - Flyway for database migrations
-- Transactions (`commit`/`rollback`) with JDBC
 - DAO (Data Access Object) design pattern
 - Integration testing with Testcontainers
 
@@ -94,4 +99,3 @@ After completing this repository, natural next steps toward the Spring Boot road
 **Repository:** [Menezesvm/BancodeDadosJDBC](https://github.com/Menezesvm/BancodeDadosJDBC)
 **Language:** Java
 **Topic:** JDBC / relational database access
-# BancodeDadosJDBC
